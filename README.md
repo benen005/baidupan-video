@@ -50,7 +50,7 @@ key.txt
 
 执行命令: 
 ```shell
-ffmpeg.exe -y -i source.mp4 -c:v libx264 -c:a copy -f hls -hls_time 5 -hls_list_size 0 -hls_key_info_file keyinfo.txt -hls_playlist_type vod -hls_segment_filename video01/video-%%03d.ts video01/index.m3u8
+ffmpeg -i source.mp4 -c:v libx264 -c:a copy -f hls -hls_time 5 -hls_list_size 0 -hls_key_info_file keyinfo.txt -hls_playlist_type vod video01/index.m3u8
 ```
 以上命令的部分参数说明: 
 |参数|说明|
@@ -84,7 +84,9 @@ ffmpeg.exe -y -i source.mp4 -s 600x480 -r 20 -b 700K -b:a 32K -c:v libx26
 ```
 我的应用数据
 └─bypy
-    └─视频
+    └─视频目录1
+    └─视频目录2
+    └─视频目录3
         ├─视频01
         │      index.m3u8
         │      video-000.ts
@@ -100,7 +102,7 @@ ffmpeg.exe -y -i source.mp4 -s 600x480 -r 20 -b 700K -b:a 32K -c:v libx26
 说明:
 - 文件夹"我的应用数据"也可能叫apps
 - 文件夹"bypy"不需要手动创建, 应该已经存在, 如果不存在应该是刚才授权失败.
-- 新建文件夹"视频", 名称不能改动;
+- 新建文件夹"视频目录"可以自行改名;
 - 重命名刚才的video01文件夹, 上传到"视频"文件夹下; 这里重命名为"视频01"
 - `.m3u8`文件必须取名为"index.m3u8"
 
