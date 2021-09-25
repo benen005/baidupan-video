@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="Generator" content="EditPlus®">
+    <meta name="Author" content="">
+    <meta name="Keywords" content="">
+    <meta name="Description" content="">
+    <meta name = "viewport" content = "width = device-width, initial-scale = 1.0, maximum-scale = 1.0, user-scalable = 0" />
+    <title>好好看视频</title>
+   
+
+</head>
+
+<body>
+    <video id="video" width="50%" height="40%" controls ></video>
+    <div id="app">
+         <!-- <button @click="getDir()">test</button> -->
+		 <div v-html="message"></div>
+        
+        分类: <button v-for="dir of dirList" @click="showVideo(dir)">{{dir}}</button> <br />
+        视频: <button v-for="video of videoList" @click="btnVideo(video)">{{video}}</button> <br />
+        当前视频：<span v-html="c_dir"></span>   <span v-html="c_video"></span> <br />
+    </div>
+    <script src="./js/hls.js"></script>
+    <script src="./js/vue.min.js"></script>
+    <script src="./js/axios.min.js"></script>
+    <script>
+        //let baseUrl = "";
+        let baseUrl = "http://121.5.125.66:5001";
+        axios.defaults.baseURL = baseUrl;
+        let that = null;
+        var app = new Vue({
+            el: '#app',
+            data: {
+                c_dir: '',
+                c_video: '',
+                videoList: [],  //第三步
+                dirList: [],
+				message: '<h1>视频播放</h1>'
+            },
+            mounted: function () {
+                that = this;
+                this.getDir();  //打开目录
+                //this.getVideoList();  //打开目录下的列表
+                //that.loadVideo(that.c_video);   //打开歌曲
+            },
+            methods: {
+                showVideo: function (dir) {
+                    //var video = document.getElementById('video');
+                    let url = baseUrl+'/dirs/'+dir
+                    that.c_dir = dir;
+                    that.c_video = '';
+                    axios.get(url).then(function (res) {
+                        that.videoList = res.data;  
+                        console.log(res.data);
+                    }).catch(function (err) {
+                        console.debug("err", err);
+                    })
+                    console.log(dir);
+                },
+                getDir: function () {  //第一步
+                    axios.get("/dirs").then(function (res) {
+                        that.dirList = res.data;  
+                        console.log(res.data);
+                    }).catch(function (err) {
+                        console.debug("err", err);
+                    })
+                    
+                },
+                btnVideo: function (video) {
+                    that.c_video = video;
+                    that.loadVideo(video);
+                },
+                getVideoList: function () {  
+                    axios.get("/videos").then(function (res) {
+                        that.videoList = res.data;  //第二步
+                    }).catch(function (err) {
+                        console.debug("err", err);
+                    })
+                },
+                loadVideo: function (videoName) {
+                    var video = document.getElementById('video');
+                    let url = baseUrl+'/videos/'+that.c_dir+'/'+videoName+'/index.m3u8'
+                    
+                    console.log(url);
+                    if (Hls.isSupported()) {
+                        var hls = new Hls();
+                        // hls.loadSource('./yuandi/index.m3u8');
+                        hls.loadSource(url);
+                        hls.attachMedia(video);
+                        hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                            video.play();
+                        });
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        video.src = url;
+                        video.addEventListener('loadedmetadata', function () {
+                            video.play();
+                        });
+                    }
+                }
+            }
+        })
+
+    </script>
+</body>
+
+</html>

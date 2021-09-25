@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="Generator" content="EditPlus®">
+    <meta name="Author" content="">
+    <meta name="Keywords" content="">
+    <meta name="Description" content="">
+    <meta name = "viewport" content = "width = device-width, initial-scale = 1.0, maximum-scale = 1.0, user-scalable = 0" />
+    <title>好好看视频</title>
+    <link rel="stylesheet" href="css/css.css?v=1.0" type="text/css" media="all" />
+
+</head>
+
+<body>
+<div id="app">
+
+<div id="top-header">
+	<div class="loading"><div class="progress"></div></div>
+	<div class="top-nav">
+		<div id="user-profile">您好, 欢迎访问</div>
+		<ul class="top-menu">	
+			<li><a href="#">关于我</a></li>
+		</ul>
+	</div>
+</div>
+         <!-- <button @click="getDir()">test</button> -->
+		 <!--<div v-html="message"></div>-->
+        <div id="block_header">
+        <div id="head">
+                
+                <li><a href="index.html">首页</a></li>
+                <li v-for="dir of dirList" @click="showVideo(dir)"><a href="#">{{dir}}</a></li>
+
+               
+                <li><a href="#">更多...</a>
+                    <ul>
+                        <li><a href="#">more</a></li>
+                    </ul>
+                </li>
+        </div>
+        <div id="head2">
+            <div class="head3" onclick="document.getElementById('block_header').style.background='#164E87';document.getElementById('block_footer').style.background='#164E87';"></div>
+            <div class="head4" onclick="document.getElementById('block_header').style.background='green';document.getElementById('block_footer').style.background='green';"></div>
+            <div class="head5" onclick="document.getElementById('block_header').style.background='yellow';document.getElementById('block_footer').style.background='yellow';"></div>
+            <div class="head6" onclick="document.getElementById('block_header').style.background='orange';document.getElementById('block_footer').style.background='orange';"></div>
+            <div class="head7" onclick="document.getElementById('block_header').style.background='red';document.getElementById('block_footer').style.background='red';"></div>
+        </div>
+        </div>
+        <div class="page">
+        <div id="main">
+        <div class="left">
+        <div class="left_word">
+        
+        <li align="center"><b><span v-html="v_title"></span></b></li>
+       
+        <li v-for="video of cvideo" @click="btnVideo(video)"><a href="#">{{video}}</a> <br />
+        <!--当前视频：<span v-html="c_dir"></span> - <span v-html="c_video"></span> <br />--> <br />
+        </div>
+        
+	<div class="block" >
+		<!--分页-->
+        <div class="page-bar">
+            <ul>
+                <li v-if="cur>1"><a v-on:click="cur--,pageClick()">上一页</a></li>
+                <li v-if="cur==1"><a class="banclick">上一页</a></li>
+                <li v-for="index in indexs" v-bind:class="{ 'active': cur == index}">
+                    <a v-on:click="btnClick(index)">{{index}}</a>
+                </li>
+                <li v-if="cur!=all"><a v-on:click="cur++,pageClick()">下一页</a></li>
+                <li v-if="cur == all"><a class="banclick">下一页</a></li>
+                <li><a>共{{all}}页</a></li>
+            </ul>
+        </div>
+	</div>
+        
+        </div>
+        <div class="right">
+             <div class="index_right_box">
+             <video id="video" width="100%" height="100%" controls style="display:none;" ></video>
+             </div>
+        </div>
+        </div>
+        </div>
+        
+        
+</div>
+
+    
+    
+
+    <script src="./js/hls.js"></script>
+    <script src="./js/vue.min.js"></script>
+    <script src="./js/axios.min.js"></script>
+    <script>
+        //let baseUrl = "";
+        let baseUrl = "http://121.5.125.66:5001";
+        axios.defaults.baseURL = baseUrl;
+        let that = null;
+        var app = new Vue({
+            el: '#app',
+            data: {
+                v_title: '全部视频',
+                
+                c_dir: '',  //当前目录
+                c_video: '',  //当前视频
+                videoList: [],  //总列表
+                all_dirList: [],  //总目录列表, 与videoList一一对应
+                
+                cvideo: [],  //当前页列表
+                dirList: [], //目录列表
+                
+				message: '<h1>视频播放</h1>',
+                
+                Index: 1,
+                all: 1,
+                limit: 10,
+                cur: 1,
+                totalPage: 0,
+                total: 0
+            },
+            mounted: function () {
+                that = this;
+                that.getDir();  //打开目录
+                
+                
+                //that.getVideoList();  //打开目录下的列表
+                //that.loadVideo(that.c_video);   //打开歌曲
+                that.get_all_videoList();
+
+            },
+            methods: {
+                get_all_videoList: function() {
+                    let url = baseUrl+'/dirs/';
+                    let all_v = [];  //返回所有目录的一个数组
+                    let all_v2 = []; //返回一个二维数组, 目录1 => 视频1 2 3 4 5 
+                    let all_v2_dir = []; // 返回一个二维数组 储存对应的目录
+
+                    axios.get("/dirs").then(function (res) {
+                        all_v = res.data;  //返回所有目录的一个数组
+                        for(let i=0;i<all_v.length;i++){
+                            tmpurl = url + all_v[i];
+                            //console.log(tmpurl);
+                            //all_v[i] 就是目录
+                            axios.get(tmpurl).then(function (res2) {
+                                all_v2.push(res2.data); //把返回的数据装进all_v2, 变成一个二维数组
+                                for(let k=0;k<res2.data.length;k++){
+                                    all_v2_dir.push(all_v[i]); //把目前放进去 all_v2_dir, 变成一个一维数组
+                                }
+
+                                let flat=all_v2.reduce((prev,next)=> {  //转化为一维数组
+                                    return prev.concat(next);
+                                })
+                                
+                                let flat2 = all_v2_dir;
+                                
+                                that.videoList = flat; //把一维数组传过去
+                                that.all_dirList = flat2; //把一维数组传过去
+                                
+                                //分页
+                                that.cvideo = that.videoList.slice((that.cur - 1) * that.limit, that.cur * that.limit);
+                                that.total = that.videoList.length;
+                                if (that.total % that.limit > 0){
+                                    that.all = parseInt(that.total / that.limit) + 1;
+                                }else{
+                                    that.all = parseInt(that.total / that.limit);
+                                }
+                                
+                            }).catch(function (err) {
+                                console.debug("err", err);
+                            });
+                        }
+                        
+                        
+                        
+                    }).catch(function (err) {
+                        console.debug("err", err);
+                    })
+
+
+                    
+                    
+                   
+                },
+            
+                //请求数据
+                dataListFn: function(index){
+                    this.$axios.get("http://jickho.com:5000/videos",
+                    {
+                        params:{
+                            page: index,
+                            limit:'10',
+                            state: 0
+                        }
+                    }).then((res) => {
+                        //if(res.data.message == "success"){
+                            this.dataList=[];
+                            for(let i=0;i<res.data.length;i++){
+                                this.dataList.push(res.data[i]);
+                            }
+                            this.all = res.data.totalPage;   //总页数
+                            this.cur = res.data.pageNum;
+                            this.totalPage = res.data.totalPage;
+                        //}
+                    });
+                },
+                btnClick: function(data){
+                    if(data != this.cur){
+                        this.cur = data;
+                        that.cvideo = that.videoList.slice((that.cur - 1) * that.limit, that.cur * that.limit);
+                    }
+                },
+                pageClick: function(){
+                    console.log('现在在'+this.cur+'页');
+                    that.cvideo = that.videoList.slice((that.cur - 1) * that.limit, that.cur * that.limit);
+                    //this.dataListFn(this.cur.toString());
+                    //console.log('现在在'+this.cur+'页');
+                },
+                loadDir: function(data, cur, limit){
+                    that.cvideo = data.slice((cur - 1) * limit, cur * limit);
+                },
+                showVideo: function (dir) {
+                    let url = baseUrl+'/dirs/'+dir
+                    that.c_dir = dir;
+                    that.c_video = '';
+                    axios.get(url).then(function (res) {
+                        that.videoList = res.data; 
+                        that.v_title = dir;
+                        
+                        that.cvideo = res.data.slice((that.cur - 1) * that.limit, that.cur * that.limit);
+                        
+                        that.total = that.videoList.length;
+                        if (that.total % that.limit > 0){
+                            that.all = parseInt(that.total / that.limit) + 1;
+                        }else{
+                            that.all = parseInt(that.total / that.limit);
+                        }
+                        
+                        
+                        //console.log(that.total);
+                        //console.log(that.all);
+                        //loadDir(res.data, that.cur, that.limit);
+                        //console.log(that.cur);
+                        //console.log(that.limit);
+                        //console.log(that.cvideo);
+                        //console.log(res.data);
+                    }).catch(function (err) {
+                        console.debug("err", err);
+                    })
+                    //console.log(dir);
+                },
+                getDir: function () {  //第一步
+                    axios.get("/dirs").then(function (res) {
+                        that.dirList = res.data;  
+                        console.log(res.data);
+                        
+                    }).catch(function (err) {
+                        console.debug("err", err);
+                    })
+                    
+                },
+                btnVideo: function (video) {
+                    var v = document.getElementById('video');
+                    v.style.display="";
+                    that.c_video = video;
+                    that.loadVideo(video);
+                },
+                getVideoList: function () {  
+                    axios.get("/videos").then(function (res) {
+                        that.videoList = res.data;  //第二步
+                        that.cvideo = res.data.slice((that.cur - 1) * that.limit, that.cur * that.limit);
+                        that.total = that.videoList.length;
+                        if (that.total % that.limit > 0){
+                            that.all = parseInt(that.total / that.limit) + 1;
+                        }else{
+                            that.all = parseInt(that.total / that.limit);
+                        }
+                    }).catch(function (err) {
+                        console.debug("err", err);
+                    })
+                },
+                loadVideo: function (videoName) {
+                    var video = document.getElementById('video');
+                    
+                    //设置当前目录c_dir
+                    let dir = '';
+                    if (that.videoList.indexOf(videoName) != -1){
+                        dir = that.all_dirList[that.videoList.indexOf(videoName)];
+                    }
+                    that.c_dir = dir;
+                    
+                    //console.log(dir);
+                    let url = baseUrl+'/videos/'+that.c_dir+'/'+videoName+'/index.m3u8';
+                    
+                    
+                    
+                    
+                    //console.log(url);
+                    if (Hls.isSupported()) {
+                        var hls = new Hls();
+                        // hls.loadSource('./yuandi/index.m3u8');
+                        hls.loadSource(url);
+                        hls.attachMedia(video);
+                        hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                            video.play();
+                        });
+                    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                        video.src = url;
+                        video.addEventListener('loadedmetadata', function () {
+                            video.play();
+                        });
+                    }
+                }
+            },
+            computed: {
+                    indexs: function(){
+                        var left = 1;
+                        var right = this.all;   
+                        var ar = [];
+                        if(this.all>=5){
+                            if(this.cur>3 && this.cur < this.all-2){
+                                left=this.cur-2;
+                                right=this.cur+2;
+                            }else{
+                                if(this.cur<=3){
+                                    left=1;
+                                    right=5;
+                                }else{
+                                    right=this.all;
+                                    left=this.all-4;
+                                }
+                            }
+                        }
+                        while (left<=right){
+                            ar.push(left);
+                            left++;         
+                        }
+                        //console.log(ar);
+                        return ar;
+                    }
+
+                }
+        })
+
+    </script>
+</body>
+
+</html>
