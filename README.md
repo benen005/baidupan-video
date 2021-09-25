@@ -7,8 +7,8 @@ m3u8(hls协议)可以播放加密的视频;
 
 # 启动程序
 程序地址:   
-github: [qiaoxingxing/baidupan-video](https://github.com/qiaoxingxing/baidupan-video)  
-gitee: [qiaoxingxing/baidupan-video](https://gitee.com/qiaoxingxing/baidupan-video)  
+github: [benen005/baidupan-video](https://github.com/benen005/baidupan-video)  
+gitee: [benen005/baidupan-video](https://gitee.com/benen005/baidupan-video)  
 
 python版本: 3.7  
 使用的包: 
